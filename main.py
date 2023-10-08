@@ -4,11 +4,7 @@ import os
 import glueops.logging
 from utils.aws_web_acl import *
 from glueops.fastapi import limiter, custom_rate_limit_exceeded
-
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from starlette.responses import JSONResponse
 
 logger = glueops.logging.configure()
 app = FastAPI()
@@ -19,7 +15,7 @@ async def handle_rate_limit_exception(request, exc):
 
 
 @app.post("/sync")
-@limiter.limit("1/minute")
+@limiter.limit("1/second")
 async def post_sync(request: Request):
     try:
         data = await request.json()
@@ -30,6 +26,7 @@ async def post_sync(request: Request):
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
 @app.post("/finalize")
+@limiter.limit("1/second")
 async def post_finalize(request: Request):
     try:
         data = await request.json()
