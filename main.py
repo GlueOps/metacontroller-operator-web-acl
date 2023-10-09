@@ -82,7 +82,7 @@ def get_parent_data(parent):
         web_acl_definition = json.loads(web_acl_definition)
         web_acl_definition["Name"] = parent["metadata"].get("name")
     status_dict = parent.get("status", {})
-    web_acl_arn = status_dict.get("web_acl_request", {}).get("arn", None)
+    web_acl_arn = status_dict.get("web_acl_request", {}).get("ARN", None)
     if not does_web_acl_exist(web_acl_arn):
         web_acl_arn = None
     return name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn
