@@ -50,6 +50,7 @@ def sync(parent, children):
             logger.info(f"No Updates to be made for {web_acl_arn}")
 
         if "error_message" in status_dict:
+            logger.info("Deleting old error_message")
             del status_dict["error_message"]
         
         return {"status": status_dict}
