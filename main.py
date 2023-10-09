@@ -48,6 +48,8 @@ def sync(parent, children):
             acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags, lock_token=lock_token)
             update_web_acl(acl_config, web_acl_arn)
             status_dict["web_acl_request"] = get_current_state_of_web_acl_arn(web_acl_arn)
+        elif not checksum_updated:
+            logger.info(f"No Updates to be made for {web_acl_arn}")
 
         return {"status": status_dict}
     except Exception as e:
