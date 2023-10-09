@@ -17,7 +17,6 @@ async def handle_rate_limit_exception(request, exc):
 
 
 @app.post("/sync")
-@limiter.limit("1/second")
 async def post_sync(request: Request):
     try:
         data = await request.json()
@@ -28,7 +27,6 @@ async def post_sync(request: Request):
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
 @app.post("/finalize")
-@limiter.limit("1/second")
 async def post_finalize(request: Request):
     try:
         data = await request.json()
