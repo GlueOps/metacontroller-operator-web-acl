@@ -57,6 +57,7 @@ def sync(parent, children):
     except Exception as e:
         status_dict["error_message"] = traceback.format_exc()
         logger.error(status_dict["error_message"])
+        del status_dict["CRC32_HASH"] #clear out state to reprocess
         return {"status": status_dict}
 
 def finalize_hook(aws_resource_tags):
