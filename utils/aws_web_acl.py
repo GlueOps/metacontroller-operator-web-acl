@@ -63,9 +63,9 @@ def delete_web_acl(web_acl_arn):
 def create_web_acl(web_acl_configuration):
     logger.info("Creating WEB ACL")
     
-    existing_arn = get_existing_web_acl(web_acl_configuration)
-    if existing_arn:
-        return existing_arn
+    existing_web_acl = get_existing_web_acl(web_acl_configuration)
+    if existing_web_acl:
+        return existing_web_acl
     
     waf = create_aws_client('wafv2')
     response = waf.create_web_acl(**web_acl_configuration)
