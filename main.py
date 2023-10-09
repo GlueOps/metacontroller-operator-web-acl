@@ -34,7 +34,7 @@ async def post_finalize(request: Request):
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
 def sync(parent, children):
-    name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated = get_parent_data(parent)
+    name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated, web_acl_definition_hash = get_parent_data(parent)
     try:
         if web_acl_arn is None:
             acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags)
@@ -53,11 +53,11 @@ def sync(parent, children):
             logger.info("Deleting old error_message")
             del status_dict["error_message"]
         
+        status_dict["CRC32_HASH"] = web_acl_definition_hash
         return {"status": status_dict}
     except Exception as e:
         status_dict["error_message"] = traceback.format_exc()
         logger.error(status_dict["error_message"])
-        del status_dict["CRC32_HASH"] #clear out state to reprocess
         return {"status": status_dict}
 
 def finalize_hook(aws_resource_tags):
@@ -91,7 +91,6 @@ def get_parent_data(parent):
     if status_dict.get("CRC32_HASH"):
         if status_dict["CRC32_HASH"] != web_acl_definition_hash:
             checksum_updated = True
-    status_dict["CRC32_HASH"] = web_acl_definition_hash
     if not does_web_acl_exist(web_acl_arn):
         web_acl_arn = None
-    return name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated
+    return name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated, web_acl_definition_hash
