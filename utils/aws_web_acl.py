@@ -73,8 +73,10 @@ def create_web_acl(web_acl_configuration):
 
 
 def update_web_acl(web_acl_configuration):
+    logger.info(f"Updating webacl {web_acl_configuration}")
     waf = create_aws_client('wafv2')
     waf.update_web_acl(**web_acl_configuration)
+    logger.info(f"Finished updating webacl")
     return True
 
 
