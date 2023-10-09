@@ -35,7 +35,7 @@ def does_web_acl_exist(web_acl_arn):
 
 
 def generate_web_acl_configuration(web_acl_definition, aws_resource_tags, lock_token=None):
-    logger.into(f"Making webacl config for: {aws_resource_tags}")
+    logger.info(f"Making webacl config for: {aws_resource_tags}")
     web_acl_params = {
         "Name": web_acl_definition["Name"],
         "Scope": WEB_ACL_SCOPE,
