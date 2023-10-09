@@ -1,0 +1,45 @@
+{
+        "DefaultAction": {
+            "Allow": {}
+        },
+        "Description": "Managed by Terraform",
+        "Rules": [
+            {
+                "Name": "too-many-requests-per-source-ip",
+                "Priority": 3,
+                "Statement": {
+                    "RateBasedStatement": {
+                        "Limit": 100,
+                        "AggregateKeyType": "IP"
+                    }
+                },
+                "Action": {
+                    "Block": {
+                        "CustomResponse": {
+                            "ResponseCode": 429,
+                            "CustomResponseBodyKey": "http_429_response"
+                        }
+                    }
+                },
+                "VisibilityConfig": {
+                    "SampledRequestsEnabled": true,
+                    "CloudWatchMetricsEnabled": true,
+                    "MetricName": "too-many-requests-per-source-ip"
+                }
+            }
+        ],
+        "VisibilityConfig": {
+            "SampledRequestsEnabled": true,
+            "CloudWatchMetricsEnabled": true,
+            "MetricName": "primary"
+        },
+        "Capacity": 2,
+        "ManagedByFirewallManager": false,
+        "LabelNamespace": "awswaf:XXXXXXXXXXXXXXX:webacl:rate-limit-only:",
+        "CustomResponseBodies": {
+            "http_429_response": {
+                "ContentType": "APPLICATION_JSON",
+                "Content": "{\nerror: \"HTTP 429 Too Many Requests.\"\n}\n"
+            }
+        }
+    }

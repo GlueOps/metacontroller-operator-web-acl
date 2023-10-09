@@ -1,0 +1,58 @@
+    {
+        "DefaultAction": {
+            "Allow": {}
+        },
+        "Description": "Managed by Terraform",
+        "Rules": [
+            {
+                "Name": "AWS-AWSManagedRulesAmazonIpReputationList",
+                "Priority": 1,
+                "Statement": {
+                    "ManagedRuleGroupStatement": {
+                        "VendorName": "AWS",
+                        "Name": "AWSManagedRulesAmazonIpReputationList"
+                    }
+                },
+                "OverrideAction": {
+                    "None": {}
+                },
+                "VisibilityConfig": {
+                    "SampledRequestsEnabled": true,
+                    "CloudWatchMetricsEnabled": true,
+                    "MetricName": "AWS-AWSManagedRulesAmazonIpReputationList"
+                }
+            },
+            {
+                "Name": "AWS-AWSManagedRulesAnonymousIpList",
+                "Priority": 2,
+                "Statement": {
+                    "ManagedRuleGroupStatement": {
+                        "VendorName": "AWS",
+                        "Name": "AWSManagedRulesAnonymousIpList"
+                    }
+                },
+                "OverrideAction": {
+                    "None": {}
+                },
+                "VisibilityConfig": {
+                    "SampledRequestsEnabled": true,
+                    "CloudWatchMetricsEnabled": true,
+                    "MetricName": "AWS-AWSManagedRulesAnonymousIpList"
+                }
+            }
+        ],
+        "VisibilityConfig": {
+            "SampledRequestsEnabled": true,
+            "CloudWatchMetricsEnabled": true,
+            "MetricName": "primary"
+        },
+        "Capacity": 75,
+        "ManagedByFirewallManager": false,
+        "LabelNamespace": "awswaf:XXXXXXXXXXXXXXX:webacl:block-bad-networks:",
+        "CustomResponseBodies": {
+            "http_429_response": {
+                "ContentType": "APPLICATION_JSON",
+                "Content": "{\nerror: \"HTTP 429 Too Many Requests.\"\n}\n"
+            }
+        }
+    }

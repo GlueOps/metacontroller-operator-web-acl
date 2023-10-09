@@ -1,0 +1,24 @@
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: glueops-waf-web-acl-controller
+spec:
+  generateSelector: true
+  parentResource:
+    apiVersion: metacontroller.glueops.dev/v1alpha1
+    resource: webapplicationfirewallwebacls
+  childResources:
+    - apiVersion: v1
+      resource: configmaps
+      updateStrategy:
+        method: InPlace
+  resyncPeriodSeconds: 30
+  hooks:
+    sync:
+      webhook:
+        url: http://172.17.0.1:8080/sync
+        timeout: "60s"
+    finalize:
+      webhook:
+        url: http://172.17.0.1:8080/finalize
+        timeout: "60s"
