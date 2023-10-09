@@ -35,8 +35,6 @@ async def post_finalize(request: Request):
 
 def sync(parent, children):
     name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated = get_parent_data(parent)
-    if "error_message" in status_dict:
-        status_dict = {}
     try:
         if web_acl_arn is None:
             acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags)
@@ -51,9 +49,11 @@ def sync(parent, children):
         elif not checksum_updated:
             logger.info(f"No Updates to be made for {web_acl_arn}")
 
+        if "error_message" in status_dict:
+            del status_dict["error_message"]
+            
         return {"status": status_dict}
     except Exception as e:
-        status_dict = {}
         status_dict["error_message"] = traceback.format_exc()
         logger.error(status_dict["error_message"])
         return {"status": status_dict}

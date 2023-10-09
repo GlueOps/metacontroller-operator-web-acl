@@ -97,7 +97,7 @@ def get_current_state_of_web_acl_arn(web_acl_arn):
     waf = create_aws_client('wafv2')
     response = waf.get_web_acl(
         Name=web_acl_name,
-        Scope='CLOUDFRONT',
+        Scope=WEB_ACL_SCOPE,
         Id=web_acl_id
     )
     return {
