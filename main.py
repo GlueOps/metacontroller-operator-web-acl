@@ -54,6 +54,7 @@ def sync(parent, children):
             del status_dict["error_message"]
         
         status_dict["CRC32_HASH"] = web_acl_definition_hash
+        status_dict["HEALTHY"] = "True"
         return {"status": status_dict}
     except Exception as e:
         status_dict["error_message"] = traceback.format_exc()
@@ -86,6 +87,7 @@ def get_parent_data(parent):
         web_acl_definition_hash = glueops.checksum_tools.string_to_crc32(json.dumps(web_acl_definition))
         
     status_dict = parent.get("status", {})
+    status_dict["HEALTHY"] = "False"
     web_acl_arn = status_dict.get("web_acl_request", {}).get("ARN", None)
     checksum_updated = False
     if status_dict.get("CRC32_HASH"):
