@@ -58,6 +58,7 @@ def sync(parent, children):
         return {"status": status_dict}
     except Exception as e:
         status_dict["error_message"] = traceback.format_exc()
+        status_dict["HEALTHY"] = "False"   
         logger.error(status_dict["error_message"])
         return {"status": status_dict}
 
