@@ -3,17 +3,11 @@ import json
 import os
 import glueops.logging
 from utils.aws_web_acl import *
-from glueops.fastapi import limiter, custom_rate_limit_exceeded
-from slowapi.errors import RateLimitExceeded
 import traceback
 import glueops.checksum_tools
 
 logger = glueops.logging.configure()
 app = FastAPI()
-
-@app.exception_handler(RateLimitExceeded)
-async def handle_rate_limit_exception(request, exc):
-    return await custom_rate_limit_exceeded(request, exc, retry_after_seconds=30)
 
 
 @app.post("/sync")
