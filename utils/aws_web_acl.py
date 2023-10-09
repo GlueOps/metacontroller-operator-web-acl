@@ -49,7 +49,8 @@ def generate_web_acl_configuration(web_acl_definition, aws_resource_tags, lock_t
     if lock_token is not None:
         web_acl_params["LockToken"] = lock_token
         del web_acl_params["Tags"] # remove tags when there is an update
-
+    logger.info(f"Finished making webacl config for: {aws_resource_tags}")
+    
     return web_acl_params
     
     
@@ -81,7 +82,7 @@ def get_existing_web_acl(web_acl_configuration):
         return get_current_state_of_web_acl_arn(arns[0])
 
 def update_web_acl(web_acl_configuration, web_acl_arn):
-    logger.info(f"Updating webacl {web_acl_configuration}")
+    logger.info(f"Updating webacl {web_acl_arn}")
     web_acl_arn, web_acl_name, web_acl_id = parse_web_acl_arn(web_acl_arn)
     web_acl_configuration["Id"] = web_acl_id
     waf = create_aws_client('wafv2')
