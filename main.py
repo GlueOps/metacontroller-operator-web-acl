@@ -90,7 +90,7 @@ def get_parent_data(parent):
     status_dict = parent.get("status", {})
     web_acl_arn = status_dict.get("web_acl_request", {}).get("ARN", None)
     checksum_updated = False
-    if status_dict["CRC32_HASH"]:
+    if status_dict.get("CRC32_HASH"):
         if status_dict["CRC32_HASH"] != web_acl_definition_hash:
             checksum_updated = True
     else:
