@@ -73,8 +73,10 @@ def create_web_acl(web_acl_configuration):
     return response["Summary"]
 
 
-def update_web_acl(web_acl_configuration):
+def update_web_acl(web_acl_configuration, update_web_acl):
     logger.info(f"Updating webacl {web_acl_configuration}")
+    web_acl_arn, web_acl_name, web_acl_id = parse_web_acl_arn(update_web_acl)
+    web_acl_configuration["Id"] = web_acl_id
     waf = create_aws_client('wafv2')
     waf.update_web_acl(**web_acl_configuration)
     logger.info(f"Finished updating webacl")

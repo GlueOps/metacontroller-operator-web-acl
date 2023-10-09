@@ -51,7 +51,7 @@ def sync(parent, children):
         else:
             lock_token = get_lock_token(web_acl_arn)
             acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags, lock_token=lock_token)
-            update_web_acl(acl_config)
+            update_web_acl(acl_config, web_acl_arn)
             status_dict["web_acl_request"] = get_current_state_of_web_acl_arn(web_acl_arn)
 
         return {"status": status_dict}
