@@ -34,8 +34,9 @@ async def post_finalize(request: Request):
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
 def sync(parent, children):
-    name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated, web_acl_definition_hash = get_parent_data(parent)
     try:
+        name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated, web_acl_definition_hash = get_parent_data(parent)
+
         if web_acl_arn is None:
             acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags)
             status_dict["web_acl_request"] = create_web_acl(acl_config)
