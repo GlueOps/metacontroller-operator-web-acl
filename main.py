@@ -5,6 +5,7 @@ import glueops.logging
 from utils.aws_web_acl import *
 from glueops.fastapi import limiter, custom_rate_limit_exceeded
 from slowapi.errors import RateLimitExceeded
+import traceback
 
 logger = glueops.logging.configure()
 app = FastAPI()
@@ -55,7 +56,8 @@ def sync(parent, children):
 
         return {"status": status_dict}
     except Exception as e:
-        status_dict["error_message"] = str(e)
+        status_dict = {}
+        status_dict["error_message"] = traceback.format_exc()
         return {"status": status_dict}
 
 def finalize_hook(aws_resource_tags):
