@@ -105,6 +105,6 @@ def get_lock_token(web_acl_arn):
     waf = create_aws_client('wafv2')
     response = waf.get_web_acl(
         Name=web_acl_name, Id=web_acl_id, Scope=WEB_ACL_SCOPE)
-    lock_token = response['WebACL']['LockToken']
+    lock_token = response['LockToken']
     logger.info(f"Recieved LockToken of {lock_token} for: {web_acl_arn}")
     return lock_token
