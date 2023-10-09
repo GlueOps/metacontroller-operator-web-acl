@@ -8,7 +8,7 @@ spec:
         "DefaultAction": {
             "Allow": {}
         },
-        "Description": "Managed by GlueOps Web ACL Controller",
+        "Description": "Provided by GlueOps",
         "Rules": [
             {
                 "Name": "too-many-requests-per-source-ip",
@@ -60,7 +60,7 @@ spec:
             "DefaultAction": {
                 "Allow": {}
             },
-            "Description": "Managed by GlueOps Web ACL Controller",
+            "Description": "Provided by GlueOps",
             "Rules": [
                 {
                     "Name": "AWS-AWSManagedRulesAmazonIpReputationList",
@@ -167,7 +167,7 @@ spec:
         "DefaultAction": {
             "Allow": {}
         },
-        "Description": "Managed by GlueOps Web ACL Controller",
+        "Description": "Provided by GlueOps",
         "Rules": [
             {
                 "Name": "AWS-AWSManagedRulesAmazonIpReputationList",
@@ -232,7 +232,7 @@ spec:
         "DefaultAction": {
             "Allow": {}
         },
-        "Description": "Managed by GlueOps Web ACL Controller",
+        "Description": "Provided by GlueOps",
         "Rules": [
             {
                 "Name": "AWS-AWSManagedRulesAmazonIpReputationList",
