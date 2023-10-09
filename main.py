@@ -42,6 +42,7 @@ def sync(parent, children):
             acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags)
             status_dict["web_acl_request"] = create_web_acl(acl_config)
         elif checksum_updated:
+            logger.info("Updating existing web_acl_arn")
             acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags)
             web_acl_arn = get_existing_web_acl(acl_config)
             lock_token = get_lock_token(web_acl_arn)
