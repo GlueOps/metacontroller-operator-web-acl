@@ -34,6 +34,7 @@ async def post_finalize(request: Request):
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
 def sync(parent, children):
+    status_dict = {}
     try:
         name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated, web_acl_definition_hash = get_parent_data(parent)
 
