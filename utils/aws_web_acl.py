@@ -47,6 +47,7 @@ def generate_web_acl_configuration(web_acl_definition, aws_resource_tags, lock_t
     }
     if lock_token is not None:
         web_acl_params["LockToken"] = lock_token
+        del web_acl_params["Tags"]
 
     return web_acl_params
     
