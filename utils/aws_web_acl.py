@@ -60,18 +60,23 @@ def delete_web_acl(web_acl_arn):
 
 def create_web_acl(web_acl_configuration):
     logger.info("Creating WEB ACL")
-    arns = get_resource_arns_using_tags(web_acl_configuration["Tags"], ["wafv2"])
-    if len(arns) > 1:
-        raise Exception("There are data integrity issues. We seem to have multiple WebACL's with the same tags. Manual cleanup is required.")
-    elif len(arns) == 1:
-        logger.info(f"Found existing Web ACL {arns[0]}")
-        return get_current_state_of_web_acl_arn(arns[0])
+    
+    existing_arn = get_existing_web_acl(web_acl_configuration)
+    if existing_arn:
+        return existing_arn
     
     waf = create_aws_client('wafv2')
     response = waf.create_web_acl(**web_acl_configuration)
     logger.info(f"Created new webacl {response['Summary']['Arn']}")
     return response["Summary"]
 
+def get_existing_web_acl(web_acl_configuration):
+    arns = get_resource_arns_using_tags(web_acl_configuration["Tags"], ["wafv2"])
+    if len(arns) > 1:
+        raise Exception("There are data integrity issues. We seem to have multiple WebACL's with the same tags. Manual cleanup is required.")
+    elif len(arns) == 1:
+        logger.info(f"Found existing Web ACL {arns[0]}")
+        return get_current_state_of_web_acl_arn(arns[0])
 
 def update_web_acl(web_acl_configuration, update_web_acl):
     logger.info(f"Updating webacl {web_acl_configuration}")
