@@ -32,7 +32,7 @@ async def post_finalize(request: Request):
         data = await request.json()
         parent = data["parent"]
         aws_resource_tags = [
-            {"Key": "kubernetes_resource_uid", "Value": parent["metadata"]["uid"]},
+            {"Key": "kubernetes_resource_name", "Value": parent["metadata"]["name"]},
             {"Key": "captain_domain", "Value": os.environ.get('CAPTAIN_DOMAIN')}
         ]
         return finalize_hook(aws_resource_tags)
@@ -40,7 +40,7 @@ async def post_finalize(request: Request):
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
 def sync(parent, children):
-    uid, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn = get_parent_data(parent)
+    name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn = get_parent_data(parent)
     if "error_message" in status_dict:
         status_dict = {}
     try:
@@ -71,10 +71,10 @@ def finalize_hook(aws_resource_tags):
         return {"finalized": False, "error": str(e)}
 
 def get_parent_data(parent):
-    uid = parent["metadata"].get("uid")
+    name = parent["metadata"].get("name")
     captain_domain = os.environ.get('CAPTAIN_DOMAIN')
     aws_resource_tags = [
-        {"Key": "kubernetes_resource_uid", "Value": uid},
+        {"Key": "kubernetes_resource_name", "Value": name},
         {"Key": "captain_domain", "Value": captain_domain}
     ]
     web_acl_definition = parent.get("spec", {}).get("web_acl_definition")
@@ -85,4 +85,4 @@ def get_parent_data(parent):
     web_acl_arn = status_dict.get("web_acl_request", {}).get("arn", None)
     if not does_web_acl_exist(web_acl_arn):
         web_acl_arn = None
-    return uid, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn
+    return name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn
