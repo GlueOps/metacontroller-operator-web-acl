@@ -88,6 +88,7 @@ def get_parent_data(parent):
     checksum_updated = False
     if status_dict.get("CRC32_HASH"):
         if status_dict["CRC32_HASH"] != web_acl_definition_hash:
+            logger.info(f"Existing CRC32 HASH: {status_dict['CRC32_HASH']} and new hash: {web_acl_definition_hash}")
             checksum_updated = True
     else:
         status_dict["CRC32_HASH"] = web_acl_definition_hash
