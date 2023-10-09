@@ -6,6 +6,7 @@ from utils.aws_web_acl import *
 from glueops.fastapi import limiter, custom_rate_limit_exceeded
 from slowapi.errors import RateLimitExceeded
 import traceback
+import glueops.checksum_tools
 
 logger = glueops.logging.configure()
 app = FastAPI()
@@ -41,18 +42,19 @@ async def post_finalize(request: Request):
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
 def sync(parent, children):
-    name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn = get_parent_data(parent)
+    name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated = get_parent_data(parent)
     if "error_message" in status_dict:
         status_dict = {}
     try:
         if web_acl_arn is None:
             acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags)
             status_dict["web_acl_request"] = create_web_acl(acl_config)
-        else:
+        elif checksum_updated:
             lock_token = get_lock_token(web_acl_arn)
             acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags, lock_token=lock_token)
             update_web_acl(acl_config, web_acl_arn)
-            status_dict["web_acl_request"] = get_current_state_of_web_acl_arn(web_acl_arn)
+        
+        status_dict["web_acl_request"] = get_current_state_of_web_acl_arn(web_acl_arn)
 
         return {"status": status_dict}
     except Exception as e:
@@ -83,8 +85,16 @@ def get_parent_data(parent):
     if web_acl_definition:
         web_acl_definition = json.loads(web_acl_definition)
         web_acl_definition["Name"] = parent["metadata"].get("name")
+        web_acl_definition_hash = glueops.checksum_tools.string_to_crc32(json.dumps(web_acl_definition))
+        
     status_dict = parent.get("status", {})
     web_acl_arn = status_dict.get("web_acl_request", {}).get("ARN", None)
+    checksum_updated = False
+    if status_dict["CRC32_HASH"]:
+        if status_dict["CRC32_HASH"] != web_acl_definition_hash:
+            checksum_updated = True
+    else:
+        status_dict["CRC32_HASH"] = web_acl_definition_hash
     if not does_web_acl_exist(web_acl_arn):
         web_acl_arn = None
-    return name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn
+    return name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated
