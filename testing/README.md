@@ -1,1 +1,1 @@
-A quick check of what's been deployed would be to try and import it back to terraform. You can expect a differences on the tags but for the most part everything else should be the same
+If you want to validate a working configuration you have in terraform the easiest way would be to import it back in using terraform import. See the main.tf and be sure to use the proper WAF aws creds and point to us-east-1 when using it.
