@@ -1,12 +1,15 @@
 from fastapi import FastAPI, HTTPException, Request
 import json
-import os
-import glueops.logging
-from utils.aws_web_acl import *
+import utils.aws_web_acl
 import traceback
 import glueops.checksum_tools
+import glueops.setup_logging
+import os
 
-logger = glueops.logging.configure()
+log_level = getattr(glueops.setup_logging,
+                    os.environ.get('LOG_LEVEL', 'WARNING'))
+logger = glueops.setup_logging.configure(log_level=log_level)
+
 app = FastAPI()
 
 
@@ -20,61 +23,76 @@ async def post_sync(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
+
 @app.post("/finalize")
 async def post_finalize(request: Request):
     try:
         data = await request.json()
         parent = data["parent"]
         aws_resource_tags = [
-            {"Key": "kubernetes_resource_name", "Value": parent["metadata"]["name"]},
-            {"Key": "captain_domain", "Value": os.environ.get('CAPTAIN_DOMAIN')}
+            {"Key": "kubernetes_resource_name",
+                "Value": parent["metadata"]["name"]},
+            {"Key": "captain_domain",
+                "Value": os.environ.get('CAPTAIN_DOMAIN')}
         ]
         return finalize_hook(aws_resource_tags)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
 
+
 def sync(parent, children):
     status_dict = {}
     try:
-        name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated, web_acl_definition_hash = get_parent_data(parent)
+        name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated, web_acl_definition_hash = get_parent_data(
+            parent)
 
         if web_acl_arn is None:
-            acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags)
-            status_dict["web_acl_request"] = create_web_acl(acl_config)
+            acl_config = utils.aws_web_acl.generate_web_acl_configuration(
+                web_acl_definition, aws_resource_tags)
+            status_dict["web_acl_request"] = utils.aws_web_acl.create_web_acl(
+                acl_config)
         elif checksum_updated:
             logger.info("Updating existing web_acl_arn")
-            acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags)
-            status_dict["web_acl_request"] = get_existing_web_acl(acl_config)
-            acl_config = generate_web_acl_configuration(web_acl_definition, aws_resource_tags, lock_token=status_dict["web_acl_request"]["LockToken"])
-            update_web_acl(acl_config, web_acl_arn)
-            status_dict["web_acl_request"] = get_current_state_of_web_acl_arn(web_acl_arn)
+            acl_config = utils.aws_web_acl.generate_web_acl_configuration(
+                web_acl_definition, aws_resource_tags)
+            status_dict["web_acl_request"] = utils.aws_web_acl.get_existing_web_acl(
+                acl_config)
+            acl_config = utils.aws_web_acl.generate_web_acl_configuration(
+                web_acl_definition, aws_resource_tags, lock_token=status_dict["web_acl_request"]["LockToken"])
+            utils.aws_web_acl.update_web_acl(acl_config, web_acl_arn)
+            status_dict["web_acl_request"] = utils.aws_web_acl.get_current_state_of_web_acl_arn(
+                web_acl_arn)
         elif not checksum_updated:
             logger.info(f"No Updates to be made for {web_acl_arn}")
 
         if "error_message" in status_dict:
             logger.info("Deleting old error_message")
             del status_dict["error_message"]
-        
+
         status_dict["CRC32_HASH"] = web_acl_definition_hash
         status_dict["HEALTHY"] = "True"
         return {"status": status_dict}
     except Exception as e:
         status_dict["error_message"] = traceback.format_exc()
-        status_dict["HEALTHY"] = "False"   
+        status_dict["HEALTHY"] = "False"
         logger.error(status_dict["error_message"])
         return {"status": status_dict}
 
+
 def finalize_hook(aws_resource_tags):
     try:
-        arns = get_resource_arns_using_tags(aws_resource_tags, ["wafv2"])
+        arns = utils.aws_web_acl.get_resource_arns_using_tags(
+            aws_resource_tags, ["wafv2"])
         if len(arns) > 1:
-            raise Exception("Multiple WebACL's with the same tags. Manual cleanup is required.")
+            raise Exception(
+                "Multiple WebACL's with the same tags. Manual cleanup is required.")
         elif len(arns) == 1:
-            delete_web_acl(arns[0])
+            utils.aws_web_acl.delete_web_acl(arns[0])
         return {"finalized": True}
     except Exception as e:
         logger.error(f"Unexpected exception occurred: {e}")
         return {"finalized": False, "error": str(e)}
+
 
 def get_parent_data(parent):
     name = parent["metadata"].get("name")
@@ -87,8 +105,9 @@ def get_parent_data(parent):
     if web_acl_definition:
         web_acl_definition = json.loads(web_acl_definition)
         web_acl_definition["Name"] = parent["metadata"].get("name")
-        web_acl_definition_hash = glueops.checksum_tools.string_to_crc32(json.dumps(web_acl_definition))
-        
+        web_acl_definition_hash = glueops.checksum_tools.string_to_crc32(
+            json.dumps(web_acl_definition))
+
     status_dict = parent.get("status", {})
     status_dict["HEALTHY"] = "False"
     web_acl_arn = status_dict.get("web_acl_request", {}).get("ARN", None)
@@ -96,6 +115,6 @@ def get_parent_data(parent):
     if status_dict.get("CRC32_HASH"):
         if status_dict["CRC32_HASH"] != web_acl_definition_hash:
             checksum_updated = True
-    if not does_web_acl_exist(web_acl_arn):
+    if not utils.aws_web_acl.does_web_acl_exist(web_acl_arn):
         web_acl_arn = None
     return name, aws_resource_tags, web_acl_definition, status_dict, web_acl_arn, checksum_updated, web_acl_definition_hash
