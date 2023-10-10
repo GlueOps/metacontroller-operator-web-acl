@@ -40,8 +40,8 @@ spec:
             "MetricName": "primary"
         },
         "Capacity": 2,
-        "ManagedByFirewallManager": false,
-        "LabelNamespace": "awswaf:XXXXXXXXXXXXXXX:webacl:rate-limit-only:",
+
+
         "CustomResponseBodies": {
             "http_429_response": {
                 "ContentType": "APPLICATION_JSON",
@@ -146,9 +146,6 @@ spec:
                 "CloudWatchMetricsEnabled": true,
                 "MetricName": "primary"
             },
-            "Capacity": 177,
-            "ManagedByFirewallManager": false,
-            "LabelNamespace": "awswaf:XXXXXXXXXXXXXXX:webacl:primary:",
             "CustomResponseBodies": {
                 "http_429_response": {
                     "ContentType": "APPLICATION_JSON",
@@ -211,9 +208,6 @@ spec:
             "CloudWatchMetricsEnabled": true,
             "MetricName": "primary"
         },
-        "Capacity": 75,
-        "ManagedByFirewallManager": false,
-        "LabelNamespace": "awswaf:XXXXXXXXXXXXXXX:webacl:block-bad-networks:",
         "CustomResponseBodies": {
             "http_429_response": {
                 "ContentType": "APPLICATION_JSON",
@@ -299,9 +293,6 @@ spec:
             "CloudWatchMetricsEnabled": true,
             "MetricName": "primary"
         },
-        "Capacity": 77,
-        "ManagedByFirewallManager": false,
-        "LabelNamespace": "awswaf:XXXXXXXXXXXXXXX:webacl:block-bad-networks-and-rate-limit:",
         "CustomResponseBodies": {
             "http_429_response": {
                 "ContentType": "APPLICATION_JSON",
