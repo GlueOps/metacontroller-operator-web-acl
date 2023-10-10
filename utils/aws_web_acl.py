@@ -1,12 +1,13 @@
+import glueops.aws
+import glueops.setup_logging
+import os
 
+log_level = getattr(glueops.setup_logging.logger,
+                    os.environ.get('LOG_LEVEL', 'WARNING'))
+logger = glueops.setup_logging.logging.configure(log_level=log_level)
 
-from glueops.aws import *
-import glueops.logging
+WEB_ACL_SCOPE = "CLOUDFRONT"
 
-logger = glueops.logging.configure()
-
-
-WEB_ACL_SCOPE="CLOUDFRONT"
 
 def parse_web_acl_arn(web_acl_arn):
     parts = web_acl_arn.split('/')
@@ -19,7 +20,7 @@ def parse_web_acl_arn(web_acl_arn):
 
 def does_web_acl_exist(web_acl_arn):
     logger.info(f"Checking to see if {web_acl_arn} exists")
-    waf = create_aws_client('wafv2')
+    waf = glueops.aws.create_aws_client('wafv2')
     try:
         web_acl_arn, web_acl_name, web_acl_id = parse_web_acl_arn(web_acl_arn)
         waf.get_web_acl(
@@ -48,44 +49,49 @@ def generate_web_acl_configuration(web_acl_definition, aws_resource_tags, lock_t
     }
     if lock_token is not None:
         web_acl_params["LockToken"] = lock_token
-        del web_acl_params["Tags"] # remove tags when there is an update
+        del web_acl_params["Tags"]  # remove tags when there is an update
     logger.info(f"Finished making webacl config for: {aws_resource_tags}")
-    
+
     return web_acl_params
-    
-    
+
+
 def delete_web_acl(web_acl_arn):
     state = get_current_state_of_web_acl_arn(web_acl_arn)
-    waf = create_aws_client('wafv2')
-    waf.delete_web_acl(Name=state["Name"], Scope=WEB_ACL_SCOPE,Id=state["Id"],LockToken=state["LockToken"])
+    waf = glueops.aws.create_aws_client('wafv2')
+    waf.delete_web_acl(Name=state["Name"], Scope=WEB_ACL_SCOPE,
+                       Id=state["Id"], LockToken=state["LockToken"])
 
 
 def create_web_acl(web_acl_configuration):
     logger.info("Creating WEB ACL")
-    
+
     existing_web_acl = get_existing_web_acl(web_acl_configuration)
     if existing_web_acl:
         return existing_web_acl
-    
-    waf = create_aws_client('wafv2')
+
+    waf = glueops.aws.create_aws_client('wafv2')
     response = waf.create_web_acl(**web_acl_configuration)
     logger.info(f"Created new webacl {response['Summary']['Arn']}")
     return response["Summary"]
 
+
 def get_existing_web_acl(web_acl_configuration):
     logger.info("Looking for existing WebACL")
-    arns = get_resource_arns_using_tags(web_acl_configuration["Tags"], ["wafv2"])
+    arns = glueops.aws.get_resource_arns_using_tags(
+        web_acl_configuration["Tags"], ["wafv2"])
     if len(arns) > 1:
-        raise Exception("There are data integrity issues. We seem to have multiple WebACL's with the same tags. Manual cleanup is required.")
+        raise Exception(
+            "There are data integrity issues. We seem to have multiple WebACL's with the same tags. Manual cleanup is required.")
     elif len(arns) == 1:
         logger.info(f"Found existing Web ACL {arns[0]}")
         return get_current_state_of_web_acl_arn(arns[0])
+
 
 def update_web_acl(web_acl_configuration, web_acl_arn):
     logger.info(f"Updating webacl {web_acl_arn}")
     web_acl_arn, web_acl_name, web_acl_id = parse_web_acl_arn(web_acl_arn)
     web_acl_configuration["Id"] = web_acl_id
-    waf = create_aws_client('wafv2')
+    waf = glueops.aws.create_aws_client('wafv2')
     waf.update_web_acl(**web_acl_configuration)
     logger.info(f"Finished updating webacl")
     return True
@@ -94,7 +100,7 @@ def update_web_acl(web_acl_configuration, web_acl_arn):
 def get_current_state_of_web_acl_arn(web_acl_arn):
     logger.info(f"Getting current state of {web_acl_arn}")
     web_acl_arn, web_acl_name, web_acl_id = parse_web_acl_arn(web_acl_arn)
-    waf = create_aws_client('wafv2')
+    waf = glueops.aws.create_aws_client('wafv2')
     response = waf.get_web_acl(
         Name=web_acl_name,
         Scope=WEB_ACL_SCOPE,
@@ -113,7 +119,7 @@ def get_current_state_of_web_acl_arn(web_acl_arn):
 def get_lock_token(web_acl_arn):
     logger.info(f"Getting LockToken for: {web_acl_arn}")
     web_acl_arn, web_acl_name, web_acl_id = parse_web_acl_arn(web_acl_arn)
-    waf = create_aws_client('wafv2')
+    waf = glueops.aws.create_aws_client('wafv2')
     logger.info("Getting token from AWS")
     response = waf.get_web_acl(
         Name=web_acl_name, Id=web_acl_id, Scope=WEB_ACL_SCOPE)
