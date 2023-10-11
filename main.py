@@ -79,7 +79,7 @@ def sync(parent, children):
 
 def finalize_hook(aws_resource_tags):
     try:
-        arns = utils.aws_web_acl.get_resource_arns_using_tags(
+        arns = glueops.aws.get_resource_arns_using_tags(
             aws_resource_tags, ["wafv2"])
         if len(arns) > 1:
             raise Exception(
