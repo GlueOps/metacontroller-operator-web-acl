@@ -5,6 +5,7 @@ import traceback
 import glueops.checksum_tools
 import glueops.setup_logging
 import os
+import asyncio
 
 logger = glueops.setup_logging.configure(level=os.environ.get('LOG_LEVEL', 'WARNING'))
 
@@ -17,9 +18,10 @@ async def post_sync(request: Request):
         data = await request.json()
         parent = data["parent"]
         children = data["children"]
-        return sync(parent, children)
+        return await asyncio.to_thread(sync, parent, children)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=traceback.format_exc())
 
 
 @app.post("/finalize")
@@ -33,9 +35,10 @@ async def post_finalize(request: Request):
             {"Key": "captain_domain",
                 "Value": os.environ.get('CAPTAIN_DOMAIN')}
         ]
-        return finalize_hook(aws_resource_tags)
+        return await asyncio.to_thread(finalize_hook, aws_resource_tags)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error occurred: {e}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=traceback.format_exc())
 
 
 def sync(parent, children):
