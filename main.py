@@ -26,7 +26,19 @@ async def post_sync(request: Request):
 
 @app.post("/finalize")
 async def post_finalize(request: Request):
-    return {"finalized": True}
+    try:
+        data = await request.json()
+        parent = data["parent"]
+        aws_resource_tags = [
+            {"Key": "kubernetes_resource_name",
+                "Value": parent["metadata"]["name"]},
+            {"Key": "captain_domain",
+                "Value": os.environ.get('CAPTAIN_DOMAIN')}
+        ]
+        return await asyncio.to_thread(finalize_hook, aws_resource_tags)
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=traceback.format_exc())
 
 
 def sync(parent, children):
